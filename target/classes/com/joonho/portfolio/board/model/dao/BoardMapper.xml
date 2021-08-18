@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.joonho.portfolio.board.model.dao.BoardMapper">
+
+	<resultMap type="com.joonho.portfolio.board.model.dto.BoardDTO" id="boardDTO">
+		<id column="BOARD_NO" property="no"/>
+		<result column="BOARD_TYPE" property="type"/>
+		<result column="CATEGORY_CODE" property="categoryCode"/>
+		<result column="BOARD_TITLE" property="title"/>
+		<result column="BOARD_BODY" property="body"/>
+		<result column="BOARD_WRITER_MEMBER_NO" property="writerMemberNo"/>
+		<result column="BOARD_COUNT" property="count"/>
+		<result column="CREATED_DATE" property="createdDate"/>
+		<result column="MODIFIED_DATE" property="modifiedDate"/>
+		<result column="BOARD_STATUS" property="status"/>
+		<association property="category" resultMap="categoryDTO"/>
+		<association property="writer" resultMap="memberDTO"/>
+		<collection property="attachmentList" resultMap="attachmentDTO"/>
+	</resultMap>
+	
+	<resultMap type="com.joonho.portfolio.board.model.dto.CategoryDTO" id="categoryDTO">
+		<id column="CATEGORY_CODE" property="code"/>
+		<result column="CATEGORY_NAME" property="name"/>
+	</resultMap>
+	
+	<resultMap type="com.joonho.portfolio.board.model.dto.AttachmentDTO" id="attachmentDTO">
+		<id column="ATTACHMENT_NO" property="no"/>
+		<result column="REF_BOARD_NO" property="refBoardNo"/>
+		<result column="ORIGINAL_NAME" property="originalName"/>
+		<result column="SAVED_NAME" property="savedName"/>
+		<result column="SAVE_PATH" property="savePath"/>
+		<result column="FILE_TYPE" property="fileType"/>
+		<result column="THUMBNAIL_PATH" property="thumbnailPath"/>
+		<result column="ATTACHMENT_STATUS" property="status"/>
+	</resultMap>
+	
+	<resultMap type="com.joonho.portfolio.member.model.dto.MemberDTO" id="memberDTO">
+		<id column="MEMBER_NO" property="no"/>
+		<result column="MEMBER_ID" property="id"/>
+		<result column="MEMBER_PWD" property="pwd"/>
+		<result column="NICKNAME" property="nickname"/>
+		<result column="PHONE" property="phone"/>
+		<result column="EMAIL" property="email"/>
+		<result column="ADDRESS" property="adddress"/>
+	</resultMap>
+	
+	
+	<select id="selectTotalCount" resultType="_int">
+        SELECT 
+               COUNT(*)
+          FROM TBL_BOARD A
+         WHERE A.BOARD_STATUS = 'Y'
+	</select>
+	
+	<select id="selectBoardList" resultMap="boardDTO">
+        SELECT <!-- WHERE절 BETWEEN 사용 -->
+               A.RNUM
+             , A.BOARD_NO
+             , A.BOARD_TYPE
+             , A.CATEGORY_CODE
+             , A.CATEGORY_NAME
+             , A.BOARD_TITLE
+             , A.BOARD_BODY
+             , A.BOARD_WRITER_MEMBER_NO
+             , A.NICKNAME
+             , A.BOARD_COUNT
+             , A.CREATED_DATE
+             , A.BOARD_STATUS
+          FROM (SELECT ROWNUM RNUM <!-- 전체 총괄 개수에 ROWNUM 매기기 -->
+                     , B.BOARD_NO
+                     , B.BOARD_TYPE
+                     , B.CATEGORY_CODE
+                     , B.CATEGORY_NAME
+                     , B.BOARD_TITLE
+                     , B.BOARD_BODY
+                     , B.BOARD_WRITER_MEMBER_NO
+                     , B.NICKNAME
+                     , B.BOARD_COUNT
+                     , B.CREATED_DATE
+                     , B.BOARD_STATUS
+                  FROM (SELECT C.BOARD_NO <!-- 조회 -->
+                             , C.BOARD_TYPE
+                             , C.CATEGORY_CODE
+                             , D.CATEGORY_NAME
+                             , C.BOARD_TITLE
+                             , C.BOARD_BODY
+                             , C.BOARD_WRITER_MEMBER_NO
+                             , E.NICKNAME
+                             , C.BOARD_COUNT
+                             , C.CREATED_DATE
+                             , C.BOARD_STATUS
+                          FROM TBL_BOARD C
+                          JOIN TBL_CATEGORY D ON (C.CATEGORY_CODE = D.CATEGORY_CODE)
+                          JOIN TBL_MEMBER E ON(C.BOARD_WRITER_MEMBER_NO = E.MEMBER_NO)
+                         WHERE C.BOARD_STATUS = 'Y'
+                         ORDER BY C.BOARD_NO DESC
+                        ) B
+               ) A
+         WHERE A.RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<insert id="insertBoard">
+        INSERT 
+          INTO TBL_BOARD A
+        (
+          A.BOARD_NO
+        , A.BOARD_TYPE
+        , A.CATEGORY_CODE
+        , A.BOARD_TITLE
+        , A.BOARD_BODY
+        , A.BOARD_WRITER_MEMBER_NO
+        )
+        VALUES
+        (
+          SEQ_BOARD_NO.NEXTVAL
+        , 1
+        , #{categoryCode}
+        , #{title}
+        , #{body}
+        , #{writerMemberNo}
+        )
+	</insert>
+	
+	<insert id="insertThumbnailContent">
+        INSERT 
+          INTO TBL_BOARD A
+        (
+          A.BOARD_NO
+        , A.BOARD_TYPE
+        , A.BOARD_TITLE
+        , A.BOARD_BODY
+        , A.BOARD_WRITER_MEMBER_NO
+        )
+        VALUES 
+        (
+          SEQ_BOARD_NO.NEXTVAL
+        , 2
+        , #{title}
+        , #{body}
+        , #{writer.no}
+        )
+	</insert>
+	
+	
+	<!-- <select id="selectThumbnailSequence" resultType="_int">
+		SELECT 
+		       SEQ_BOARD_NO.CURRVAL
+		  FROM DUAL
+	</select> -->
+	<insert id="insertAttachment">
+		<selectKey keyProperty="refBoardNo" order="BEFORE" resultType="_int">
+			SELECT 
+			       SEQ_BOARD_NO.CURRVAL
+			  FROM DUAL
+		</selectKey>
+        INSERT 
+          INTO TBL_ATTACHMENT A
+        (
+          A.ATTACHMENT_NO
+        , A.REF_BOARD_NO
+        , A.ORIGINAL_NAME
+        , A.SAVED_NAME
+        , A.SAVE_PATH
+        , A.THUMBNAIL_PATH
+        <!-- , A.FILE_TYPE -->
+        )
+        VALUES 
+        (
+          SEQ_ATTACHMENT_NO.NEXTVAL
+        , #{refBoardNo}
+        , #{originalName}
+        , #{savedName}
+        , #{savePath}
+        , #{thumbnailPath}
+        <!-- , #{fileType}-->
+        )
+	</insert>
+	
+	
+	<select id="selectThumbnailList" resultMap="boardDTO">
+        SELECT 
+               A.BOARD_NO
+             , A.BOARD_TITLE
+             , B.NICKNAME
+             , A.BOARD_COUNT
+             , A.CREATED_DATE
+             , C.ATTACHMENT_NO
+             , C.ORIGINAL_NAME
+             , C.SAVED_NAME
+             , C.SAVE_PATH
+             , C.THUMBNAIL_PATH
+          FROM TBL_BOARD A
+          JOIN TBL_MEMBER B ON (A.BOARD_WRITER_MEMBER_NO = B.MEMBER_NO)
+          JOIN TBL_ATTACHMENT C ON (A.BOARD_NO = C.REF_BOARD_NO)
+         WHERE A.BOARD_STATUS = 'Y'
+           AND C.ATTACHMENT_STATUS = 'Y'
+         ORDER BY A.BOARD_NO DESC
+	</select>
+	
+	
+	<!-- <select id="searchCategoryBoardCount" resultType="_int">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_BOARD B
+		  JOIN TBL_CATEGORY C ON (B.CATEGORY_CODE = C.CATEGORY_CODE)
+		 WHERE B.BOARD_STATUS = 'Y'
+		   AND C.CATEGORY_NAME LIKE '%' || ? || '%'
+	</select>
+	<select id="writerBoardCount">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_BOARD B
+		  JOIN TBL_MEMBER M ON (B.BOARD_WRITER_MEMBER_NO = M.MEMBER_NO)
+		 WHERE B.BOARD_STATUS = 'Y'
+		   AND M.NICKNAME LIKE '%' || ? || '%'
+	</select>
+	<select id="titleBoardCount">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_BOARD 
+		 WHERE BOARD_STATUS = 'Y'
+		   AND BOARD_TITLE LIKE '%' || ? || '%'
+	</select>
+	<select id="contentBoardCount">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_BOARD 
+		 WHERE BOARD_STATUS = 'Y'
+		   AND BOARD_BODY LIKE '%' || ? || '%'
+	</select> -->
+	
+	
+	
+	<!-- <select id="seacrchCategoryBoard">
+ 		SELECT 
+               A.RNUM
+             , A.BOARD_NO
+             , A.BOARD_TYPE
+             , A.CATEGORY_CODE
+             , A.CATEGORY_NAME
+             , A.BOARD_TITLE
+             , A.BOARD_BODY
+             , A.BOARD_WRITER_MEMBER_NO
+             , A.NICKNAME
+             , A.BOARD_COUNT
+             , A.CREATED_DATE
+             , A.BOARD_STATUS
+          FROM (SELECT ROWNUM RNUM
+                     , B.BOARD_NO
+                     , B.BOARD_TYPE
+                     , B.CATEGORY_CODE
+                     , B.CATEGORY_NAME
+                     , B.BOARD_TITLE
+                     , B.BOARD_BODY
+                     , B.BOARD_WRITER_MEMBER_NO
+                     , B.NICKNAME
+                     , B.BOARD_COUNT
+                     , B.CREATED_DATE
+                     , B.BOARD_STATUS
+                  FROM (SELECT C.BOARD_NO
+                             , C.BOARD_TYPE
+                             , C.CATEGORY_CODE
+                             , D.CATEGORY_NAME
+                             , C.BOARD_TITLE
+                             , C.BOARD_BODY
+                             , C.BOARD_WRITER_MEMBER_NO
+                             , E.NICKNAME
+                             , C.BOARD_COUNT
+                             , C.CREATED_DATE
+                             , C.BOARD_STATUS
+                          FROM TBL_BOARD C
+                          JOIN TBL_CATEGORY D ON (C.CATEGORY_CODE = D.CATEGORY_CODE)
+                          JOIN TBL_MEMBER E ON(C.BOARD_WRITER_MEMBER_NO = E.MEMBER_NO)
+                         WHERE C.BOARD_STATUS = 'Y'
+                         ORDER BY C.BOARD_NO DESC
+                        ) B
+                 WHERE B.BOARD_STATUS = 'Y'
+                   AND B.CATEGORY_NAME LIKE '%' || ? || '%'
+               ) A
+		 WHERE A.RNUM BETWEEN ? AND ?
+	</select>
+	<select id="writerBoard">
+ 		SELECT 
+               A.RNUM
+             , A.BOARD_NO
+             , A.BOARD_TYPE
+             , A.CATEGORY_CODE
+             , A.CATEGORY_NAME
+             , A.BOARD_TITLE
+             , A.BOARD_BODY
+             , A.BOARD_WRITER_MEMBER_NO
+             , A.NICKNAME
+             , A.BOARD_COUNT
+             , A.CREATED_DATE
+             , A.BOARD_STATUS
+          FROM (SELECT ROWNUM RNUM
+                     , B.BOARD_NO
+                     , B.BOARD_TYPE
+                     , B.CATEGORY_CODE
+                     , B.CATEGORY_NAME
+                     , B.BOARD_TITLE
+                     , B.BOARD_BODY
+                     , B.BOARD_WRITER_MEMBER_NO
+                     , B.NICKNAME
+                     , B.BOARD_COUNT
+                     , B.CREATED_DATE
+                     , B.BOARD_STATUS
+                  FROM (SELECT C.BOARD_NO
+                             , C.BOARD_TYPE
+                             , C.CATEGORY_CODE
+                             , D.CATEGORY_NAME
+                             , C.BOARD_TITLE
+                             , C.BOARD_BODY
+                             , C.BOARD_WRITER_MEMBER_NO
+                             , E.NICKNAME
+                             , C.BOARD_COUNT
+                             , C.CREATED_DATE
+                             , C.BOARD_STATUS
+                          FROM TBL_BOARD C
+                          JOIN TBL_CATEGORY D ON (C.CATEGORY_CODE = D.CATEGORY_CODE)
+                          JOIN TBL_MEMBER E ON(C.BOARD_WRITER_MEMBER_NO = E.MEMBER_NO)
+                         WHERE C.BOARD_STATUS = 'Y'
+                         ORDER BY C.BOARD_NO DESC
+                        ) B
+                 WHERE B.BOARD_STATUS = 'Y'
+                   AND B.NICKNAME LIKE '%' || ? || '%'
+               ) A
+		 WHERE A.RNUM BETWEEN ? AND ?
+	</select>
+	<select id="titleBoard">
+ 		SELECT 
+               A.RNUM
+             , A.BOARD_NO
+             , A.BOARD_TYPE
+             , A.CATEGORY_CODE
+             , A.CATEGORY_NAME
+             , A.BOARD_TITLE
+             , A.BOARD_BODY
+             , A.BOARD_WRITER_MEMBER_NO
+             , A.NICKNAME
+             , A.BOARD_COUNT
+             , A.CREATED_DATE
+             , A.BOARD_STATUS
+          FROM (SELECT ROWNUM RNUM
+                     , B.BOARD_NO
+                     , B.BOARD_TYPE
+                     , B.CATEGORY_CODE
+                     , B.CATEGORY_NAME
+                     , B.BOARD_TITLE
+                     , B.BOARD_BODY
+                     , B.BOARD_WRITER_MEMBER_NO
+                     , B.NICKNAME
+                     , B.BOARD_COUNT
+                     , B.CREATED_DATE
+                     , B.BOARD_STATUS
+                  FROM (SELECT C.BOARD_NO
+                             , C.BOARD_TYPE
+                             , C.CATEGORY_CODE
+                             , D.CATEGORY_NAME
+                             , C.BOARD_TITLE
+                             , C.BOARD_BODY
+                             , C.BOARD_WRITER_MEMBER_NO
+                             , E.NICKNAME
+                             , C.BOARD_COUNT
+                             , C.CREATED_DATE
+                             , C.BOARD_STATUS
+                          FROM TBL_BOARD C
+                          JOIN TBL_CATEGORY D ON (C.CATEGORY_CODE = D.CATEGORY_CODE)
+                          JOIN TBL_MEMBER E ON(C.BOARD_WRITER_MEMBER_NO = E.MEMBER_NO)
+                         WHERE C.BOARD_STATUS = 'Y'
+                         ORDER BY C.BOARD_NO DESC
+                        ) B
+                 WHERE B.BOARD_STATUS = 'Y'
+                   AND B.BOARD_TITLE LIKE '%' || ? || '%'
+               ) A
+		 WHERE A.RNUM BETWEEN ? AND ?
+	</select>
+	<select id="contentBoard">
+ 		SELECT 
+               A.RNUM
+             , A.BOARD_NO
+             , A.BOARD_TYPE
+             , A.CATEGORY_CODE
+             , A.CATEGORY_NAME
+             , A.BOARD_TITLE
+             , A.BOARD_BODY
+             , A.BOARD_WRITER_MEMBER_NO
+             , A.NICKNAME
+             , A.BOARD_COUNT
+             , A.CREATED_DATE
+             , A.BOARD_STATUS
+          FROM (SELECT ROWNUM RNUM
+                     , B.BOARD_NO
+                     , B.BOARD_TYPE
+                     , B.CATEGORY_CODE
+                     , B.CATEGORY_NAME
+                     , B.BOARD_TITLE
+                     , B.BOARD_BODY
+                     , B.BOARD_WRITER_MEMBER_NO
+                     , B.NICKNAME
+                     , B.BOARD_COUNT
+                     , B.CREATED_DATE
+                     , B.BOARD_STATUS
+                  FROM (SELECT C.BOARD_NO
+                             , C.BOARD_TYPE
+                             , C.CATEGORY_CODE
+                             , D.CATEGORY_NAME
+                             , C.BOARD_TITLE
+                             , C.BOARD_BODY
+                             , C.BOARD_WRITER_MEMBER_NO
+                             , E.NICKNAME
+                             , C.BOARD_COUNT
+                             , C.CREATED_DATE
+                             , C.BOARD_STATUS
+                          FROM TBL_BOARD C
+                          JOIN TBL_CATEGORY D ON (C.CATEGORY_CODE = D.CATEGORY_CODE)
+                          JOIN TBL_MEMBER E ON(C.BOARD_WRITER_MEMBER_NO = E.MEMBER_NO)
+                         WHERE C.BOARD_STATUS = 'Y'
+                         ORDER BY C.BOARD_NO DESC
+                        ) B
+                 WHERE B.BOARD_STATUS = 'Y'
+                   AND B.BOARD_BODY LIKE '%' || ? || '%'
+               ) A
+		 WHERE A.RNUM BETWEEN ? AND ?
+	</select> -->
+	
+	
+	
+	
+	
+	<update id="incrementBoardCount">
+        UPDATE 
+               TBL_BOARD A
+           SET A.BOARD_COUNT = (SELECT B.BOARD_COUNT
+                                  FROM TBL_BOARD B
+                                 WHERE B.BOARD_NO = #{no}
+                               ) + 1
+         WHERE A.BOARD_NO = #{no}
+	</update>
+	<select id="selectOneThumbnailBoard" resultMap="boardDTO">
+        SELECT 
+               A.BOARD_NO
+             , A.BOARD_TITLE
+             , A.BOARD_BODY
+             , A.BOARD_WRITER_MEMBER_NO
+             , B.NICKNAME
+             , A.BOARD_COUNT
+             , A.CREATED_DATE
+             , C.ATTACHMENT_NO
+             , C.ORIGINAL_NAME
+             , C.SAVED_NAME
+             , C.SAVE_PATH
+             , C.FILE_TYPE
+             , C.THUMBNAIL_PATH
+          FROM TBL_BOARD A
+          JOIN TBL_MEMBER B ON (A.BOARD_WRITER_MEMBER_NO = B.MEMBER_NO)
+          JOIN TBL_ATTACHMENT C ON (A.BOARD_NO = C.REF_BOARD_NO)
+         WHERE A.BOARD_STATUS = 'Y'
+           AND C.ATTACHMENT_STATUS = 'Y'
+           AND A.BOARD_NO = #{no}
+	</select>
+</mapper>

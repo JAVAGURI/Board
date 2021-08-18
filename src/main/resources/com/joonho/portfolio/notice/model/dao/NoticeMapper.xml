@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.joonho.portfolio.notice.model.dao.NoticeMapper">
+	
+	<resultMap type="com.joonho.portfolio.notice.model.dto.NoticeDTO" id="noticeDTO">
+		<id column="NOTICE_NO" property="no"/>
+		<result column="NOTICE_TITLE" property="title"/>
+		<result column="NOTICE_BODY" property="body"/>
+		<result column="NOTICE_WRITER_MEMBER_NO" property="writerMemberNo"/>
+		<result column="NOTICE_COUNT" property="count"/>
+		<result column="CREATED_DATE" property="createdDate"/>
+		<result column="NOTICE_STATUS" property="status"/>
+		<association property="writer" resultMap="memberDTO"/>
+	</resultMap>
+	<resultMap type="com.joonho.portfolio.member.model.dto.MemberDTO" id="memberDTO">
+		<id column="MEMBER_NO" property="no"/>
+		<result column="MEMBER_ID" property="id"/>
+		<result column="MEMBER_PWD" property="pwd"/>
+		<result column="NICKNAME" property="nickname"/>
+		<result column="PHONE" property="phone"/>
+		<result column="EMAIL" property="email"/>
+		<result column="ADDRESS" property="adddress"/>
+	</resultMap>
+	
+	
+	<select id="selectAllNoticeList" resultMap="noticeDTO">
+        SELECT 
+               A.NOTICE_NO
+             , A.NOTICE_TITLE
+             , A.NOTICE_BODY
+             , A.NOTICE_WRITER_MEMBER_NO
+             , B.NICKNAME
+             , A.NOTICE_COUNT
+             , A.CREATED_DATE
+         FROM TBL_NOTICE A
+         JOIN TBL_MEMBER B ON (A.NOTICE_WRITER_MEMBER_NO = B.MEMBER_NO)
+        WHERE A.NOTICE_STATUS = 'Y'
+        ORDER BY A.NOTICE_NO DESC
+	</select>
+	
+	<insert id="insertNotice">
+        INSERT
+          INTO TBL_NOTICE A
+        (
+          A.NOTICE_NO
+        , A.NOTICE_TITLE
+        , A.NOTICE_BODY
+        , A.NOTICE_WRITER_MEMBER_NO
+        )
+        VALUES
+        (
+          SEQ_NOTICE_NO.NEXTVAL
+        , #{title}
+        , #{body}
+        , #{writer.no}
+        )
+	</insert>
+	
+	<update id="incrementNoticeCount">
+        UPDATE
+               TBL_NOTICE A
+           SET A.NOTICE_COUNT = (SELECT B.NOTICE_COUNT
+                                   FROM TBL_NOTICE B
+                                  WHERE B.NOTICE_NO = #{no}
+                                ) + 1
+         WHERE A.NOTICE_NO = #{no}
+	</update>
+	<select id="selectNoticeDetail" resultMap="noticeDTO">
+        SELECT
+               A.NOTICE_NO
+             , A.NOTICE_TITLE
+             , A.NOTICE_BODY
+             , A.NOTICE_WRITER_MEMBER_NO
+             , B.NICKNAME
+             , A.NOTICE_COUNT
+             , A.CREATED_DATE
+          FROM TBL_NOTICE A
+          JOIN TBL_MEMBER B ON (A.NOTICE_WRITER_MEMBER_NO = B.MEMBER_NO)
+         WHERE A.NOTICE_STATUS = 'Y'
+           AND A.NOTICE_NO = #{no}
+	</select>
+	<update id="noticeUpdate">
+		UPDATE TBL_NOTICE A
+		   SET A.NOTICE_TITLE = #{title}
+             , A.NOTICE_BODY = #{body}
+         WHERE A.NOTICE_NO = #{no}
+	</update>
+</mapper>
