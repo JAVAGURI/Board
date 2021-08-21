@@ -17,7 +17,6 @@ public interface BoardMapper {
 	int insertBoard(BoardDTO newBoard);
 
 	int searchBoardCount(SearchDTO searchDTO);
-
 	List<BoardDTO> searchBoardList(Map<String, Object> search);
 
 	List<BoardDTO> selectThumbnailList();

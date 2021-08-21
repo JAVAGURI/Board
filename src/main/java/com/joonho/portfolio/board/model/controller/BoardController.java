@@ -1,7 +1,9 @@
 package com.joonho.portfolio.board.model.controller;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.joonho.portfolio.board.model.dto.BoardDTO;
 import com.joonho.portfolio.board.model.dto.PageInfoDTO;
+import com.joonho.portfolio.board.model.dto.SearchDTO;
 import com.joonho.portfolio.board.model.service.BoardService;
 import com.joonho.portfolio.common.PageNation;
 import com.joonho.portfolio.member.model.dto.MemberDTO;
@@ -89,64 +92,55 @@ public class BoardController {
 	
 	}
 	
-//	@GetMapping("search")
-//	public void BoardSearchList(Model model, HttpServletRequest request,
-//			HttpServletResponse response, @ModelAttribute @Nullable SearchDTO searchDTO) throws ServletException, IOException {
-//		
-//		/* 목록보기를 눌렀을 시 가장 처음에 보여지는 페이지는 1페이지이다.
-//		 * 파라미터로 전달되는 페이지가 있는 경우 currentPage는 파라미터로 전달받은 페이지 수 이다.
-//		 * */
-//		String currentPage = request.getParameter("currentPage");
-//		int pageNo = 1;
-//		
-//		if(currentPage != null && !"".equals(currentPage)) {
-//			pageNo = Integer.parseInt(currentPage);
-//		}
-//		
-//		/* 0보다 작은 숫자값을 입력해도 1페이지를 보여준다 */
-//		if(pageNo <= 0) {
-//			pageNo = 1;
-//		}
-//		
-//		/* 전체 게시물 수가 필요하다.
-//		 * 데이터베이스에서 먼저 전체 게시물 수를 조회해올 것이다.
-//		 * */
-//		int totalCount = boardService.searchBoardCount(searchDTO);
-//		
-//		System.out.println("totalBoardCount : " + totalCount);
-//		
-//		/* 한 페이지에 보여 줄 게시물 수 */
-//		int limit = 10;		//얘도 파라미터로 전달받아도 된다.
-//		/* 한 번에 보여질 페이징 버튼의 갯수 */
-//		int buttonAmount = 5;
-//		
-//		/* 페이징 처리를 위한 로직 호출 후 페이징 처리에 관한 정보를 담고 있는 인스턴스를 반환받는다. */
-//		PageInfoDTO pageInfo = PageNation.getPageInfo(pageNo, totalCount, limit, buttonAmount);
-//		
-//		System.out.println(pageInfo);
-//		
-//		Map<String, Object> search = new HashMap();
-//		search.put("searchDTO", searchDTO);
-//		search.put("pageInfo", pageInfo);
-//		
-//		/* 조회해온다 */
-//		List<BoardDTO> boardList = boardService.searchBoardList(search);
-//		
-//		System.out.println("boardList : " + boardList);
-//		
-//		String path = "";
-//		if(boardList != null) {
-//			path = "/WEB-INF/views/board/boardList.jsp";
-//			request.setAttribute("boardList", boardList);
-//			request.setAttribute("pageInfo", pageInfo);
-//			request.setAttribute("searchDTO", searchDTO);
-//		} else {
-//			path = "/WEB-INF/views/common/failed.jsp";
-//			request.setAttribute("message", "게시물 목록 조회 실패!");
-//		}
-//		
-//		request.getRequestDispatcher(path).forward(request, response);
-//	}
+	@GetMapping("search")
+	public String BoardSearchList(Model model, @RequestParam(required = false) String currentPage, @ModelAttribute SearchDTO searchDTO) throws ServletException, IOException {
+		
+		System.out.println(currentPage);
+		System.out.println(searchDTO);
+		
+		int pageNo = 1;
+		
+		if(currentPage != null && !"".equals(currentPage)) {
+			pageNo = Integer.parseInt(currentPage);
+		}
+		
+		if(pageNo <= 0) {
+			pageNo = 1;
+		}
+		
+					int totalCount = boardService.searchBoardCount(searchDTO);
+		
+		System.out.println("totalBoardCount : " + totalCount);
+		
+		int limit = 10;
+		int buttonAmount = 5;
+		
+		PageInfoDTO pageInfo = PageNation.getPageInfo(pageNo, totalCount, limit, buttonAmount);
+		
+		System.out.println(pageInfo);
+		
+		Map<String, Object> search = new HashMap<>();
+		search.put("searchDTO", searchDTO);
+		search.put("pageInfo", pageInfo);
+		
+					List<BoardDTO> boardList = boardService.searchBoardList(search);
+		
+		System.out.println("boardList : " + boardList);
+		
+		String path = "";
+		if(boardList != null) {
+			path = "/WEB-INF/views/board/boardList.jsp";
+			model.addAttribute("boardList", boardList);
+			model.addAttribute("pageInfo", pageInfo);
+			model.addAttribute("searchCondition", searchDTO.getCondition());
+			model.addAttribute("searchValue", searchDTO.getValue());
+		} else {
+			path = "/WEB-INF/views/common/failed.jsp";
+			model.addAttribute("message", "게시물 목록 조회 실패!");
+		}
+		
+		return "forward:" + path;
+	}
 	
 	@GetMapping("insert")
 	public String BoardInsert(Model model) {

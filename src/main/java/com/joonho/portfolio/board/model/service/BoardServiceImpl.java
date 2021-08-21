@@ -109,9 +109,9 @@ public class BoardServiceImpl implements BoardService{
 	 * @param value 값
 	 * @return
 	 */
-	public int searchBoardCount(SearchDTO searchDTO) {
+	public int searchBoardCount(SearchDTO search) {
 		
-		int totalCount = mapper.searchBoardCount(searchDTO);
+		int totalCount = mapper.searchBoardCount(search);
 		
 		return totalCount;
 	}

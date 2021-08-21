@@ -22,7 +22,7 @@
 				<th width="100px">조회수</th>
 				<th width="150px">작성일</th>
 			</tr>
-			<c:forEach var="board" items="${ requestScope.boardList }">
+			<c:forEach var="board" items="${ boardList }">
 			<tr>
 				<td><c:out value="${ board.no }"/></td>
 				<td><c:out value="${ board.category.name }"/></td>
@@ -39,29 +39,29 @@
 		<div class="pagingArea" align="center">
 						<!-- 검색을 하지 않았을 때의 페이지 분기처리 -->
 			<c:choose>
-			    <c:when test="${ empty requestScope.searchValue }">
+			    <c:when test="${ empty searchValue }">
 				    <button id="startPage"><<</button>
 	
-					<c:if test="${ requestScope.pageInfo.pageNo <= 1 }">
+					<c:if test="${ pageInfo.pageNo <= 1 }">
 						<button disabled><</button>
 					</c:if>
-					<c:if test="${ requestScope.pageInfo.pageNo > 1 }">
+					<c:if test="${ pageInfo.pageNo > 1 }">
 						<button id="prevPage"><</button>
 					</c:if>
 						<!-- 페이지 버튼에 색깔처리 + 표시되는 개수 처리 -->
-					<c:forEach var="p" begin="${ requestScope.pageInfo.startPage }" end="${ requestScope.pageInfo.endPage }" step="1">
-						<c:if test="${ requestScope.pageInfo.pageNo eq p }">
+					<c:forEach var="p" begin="${ pageInfo.startPage }" end="${ pageInfo.endPage }" step="1">
+						<c:if test="${ pageInfo.pageNo eq p }">
 							<button disabled><c:out value="${ p }"/></button>
 						</c:if>
-						<c:if test="${ requestScope.pageInfo.pageNo ne p }">
+						<c:if test="${ pageInfo.pageNo ne p }">
 							<button onclick="pageButtonAction(this.innerText);"><c:out value="${ p }"/></button>
 						</c:if>
 					</c:forEach>
 					
-					<c:if test="${ requestScope.pageInfo.pageNo >= requestScope.pageInfo.maxPage }">
+					<c:if test="${ pageInfo.pageNo >= pageInfo.maxPage }">
 						<button disabled>></button>
 					</c:if>
-					<c:if test="${ requestScope.pageInfo.pageNo < requestScope.pageInfo.maxPage }">
+					<c:if test="${ pageInfo.pageNo < pageInfo.maxPage }">
 						<button id="nextPage">></button>
 					</c:if>
 					
@@ -72,26 +72,26 @@
 			    <c:otherwise>
    				    <button id="searchStartPage"><<</button>
 	
-					<c:if test="${ requestScope.pageInfo.pageNo <= 1 }">
+					<c:if test="${ pageInfo.pageNo <= 1 }">
 						<button disabled><</button>
 					</c:if>
-					<c:if test="${ requestScope.pageInfo.pageNo > 1 }">
+					<c:if test="${ pageInfo.pageNo > 1 }">
 						<button id="searchPrevPage"><</button>
 					</c:if>
 		
-					<c:forEach var="p" begin="${ requestScope.pageInfo.startPage }" end="${ requestScope.pageInfo.endPage }" step="1">
-						<c:if test="${ requestScope.pageInfo.pageNo eq p }">
+					<c:forEach var="p" begin="${ pageInfo.startPage }" end="${ pageInfo.endPage }" step="1">
+						<c:if test="${ pageInfo.pageNo eq p }">
 							<button disabled><c:out value="${ p }"/></button>
 						</c:if>
-						<c:if test="${ requestScope.pageInfo.pageNo ne p }">
+						<c:if test="${ pageInfo.pageNo ne p }">
 							<button onclick="seachPageButtonAction(this.innerText);"><c:out value="${ p }"/></button>
 						</c:if>
 					</c:forEach>
 					
-					<c:if test="${ requestScope.pageInfo.pageNo >= requestScope.pageInfo.maxPage }">
+					<c:if test="${ pageInfo.pageNo >= pageInfo.maxPage }">
 						<button disabled>></button>
 					</c:if>
-					<c:if test="${ requestScope.pageInfo.pageNo < requestScope.pageInfo.maxPage }">
+					<c:if test="${ pageInfo.pageNo < pageInfo.maxPage }">
 						<button id="searchNextPage">></button>
 					</c:if>
 					
@@ -107,23 +107,23 @@
 										<!-- 선택한 카테고리 + 검색어를 파라미터로 넘겨준다 -->
 										
 				<c:choose>
-				    <c:when test="${ !empty requestScope.searchValue }">
+				    <c:when test="${ !empty searchValue }">
    					    <select id="searchCondition" name="searchCondition">
-							<option value="category" <c:if test="${requestScope.searchCondition eq 'category'}">selected</c:if>>카테고리</option>
-							<option value="writer" <c:if test="${requestScope.searchCondition eq 'writer'}">selected</c:if>>작성자</option>
-							<option value="title" <c:if test="${requestScope.searchCondition eq 'title'}">selected</c:if>>제목</option>
-							<option value="content" <c:if test="${requestScope.searchCondition eq 'content'}">selected</c:if>>내용</option>
+							<option value="category" <c:if test="${ searchCondition eq 'category'}">selected</c:if>>카테고리</option>
+							<option value="writer" <c:if test="${ searchCondition eq 'writer'}">selected</c:if>>작성자</option>
+							<option value="title" <c:if test="${ searchCondition eq 'title'}">selected</c:if>>제목</option>
+							<option value="content" <c:if test="${ searchCondition eq 'content'}">selected</c:if>>내용</option>
 						</select>
-				        <input type="search" id="searchValue" name="searchValue" value="${ requestScope.searchValue }">
+				        <input type="search" id="searchValue" name="searchValue" value="${ searchValue }">
 				    </c:when>
 				    <c:otherwise>
-					    <select id="searchCondition" name="searchCondition">
+					    <select id="searchCondition" name="Condition">
 							<option value="category">카테고리</option>
 							<option value="writer">작성자</option>
 							<option value="title">제목</option>
 							<option value="content">내용</option>
 						</select>
-				        <input type="search" id="searchValue" name="searchValue" >
+				        <input type="search" id="searchValue" name="Value" >
 				    </c:otherwise>
 				</c:choose>
 				<button type="submit">검색하기</button>
@@ -147,49 +147,51 @@
 		if(document.getElementById("prevPage")) {
 			const $prevPage = document.getElementById("prevPage");
 			$prevPage.onclick = function() {
-				location.href = link + "?currentPage=${ requestScope.pageInfo.pageNo - 1 }";
+				location.href = link + "?currentPage=${ pageInfo.pageNo - 1 }";
 			}
 		}
 		
 		if(document.getElementById("nextPage")) {
 			const $nextPage = document.getElementById("nextPage");
 			$nextPage.onclick = function() {
-				location.href = link + "?currentPage=${ requestScope.pageInfo.pageNo + 1 }";
+				location.href = link + "?currentPage=${ pageInfo.pageNo + 1 }";
 			}
 		}
 		
 		if(document.getElementById("maxPage")) {
 			const $maxPage = document.getElementById("maxPage");
 			$maxPage.onclick = function() {
-				location.href = link + "?currentPage=${ requestScope.pageInfo.maxPage }";
+				location.href = link + "?currentPage=${ pageInfo.maxPage }";
 			}
 		}
+		
+		/* 여기서 부터 search 부분 */
 		
 		if(document.getElementById("searchStartPage")) {
 			const $searchStartPage = document.getElementById("searchStartPage");
 			$searchStartPage.onclick = function() {
-				location.href = searchLink + "?currentPage=1&searchCondition=${ requestScope.searchCondition}&searchValue=${ requestScope.searchValue}";
+				location.href = searchLink + "?currentPage=1&searchCondition=${ searchCondition }&searchValue=${ searchValue}";
 			}
 		}
 		
 		if(document.getElementById("searchPrevPage")) {
 			const $searchPrevPage = document.getElementById("searchPrevPage");
 			$searchPrevPage.onclick = function() {
-				location.href = searchLink + "?currentPage=${ requestScope.pageInfo.pageNo - 1 }&searchCondition=${ requestScope.searchCondition}&searchValue=${ requestScope.searchValue}";
+				location.href = searchLink + "?currentPage=${ pageInfo.pageNo - 1 }&searchCondition=${ searchCondition}&searchValue=${ searchValue}";
 			}
 		}
 		
 		if(document.getElementById("searchNextPage")) {
 			const $searchNextPage = document.getElementById("searchNextPage");
 			$searchNextPage.onclick = function() {
-				location.href = searchLink + "?currentPage=${ requestScope.pageInfo.pageNo + 1 }&searchCondition=${ requestScope.searchCondition}&searchValue=${ requestScope.searchValue}";
+				location.href = searchLink + "?currentPage=${ pageInfo.pageNo + 1 }&searchCondition=${ searchCondition}&searchValue=${ searchValue}";
 			}
 		}
 		
 		if(document.getElementById("searchMaxPage")) {
 			const $searchMaxPage = document.getElementById("searchMaxPage");
 			$searchMaxPage.onclick = function() {
-				location.href = searchLink + "?currentPage=${ requestScope.pageInfo.maxPage }&searchCondition=${ requestScope.searchCondition}&searchValue=${ requestScope.searchValue}";
+				location.href = searchLink + "?currentPage=${ pageInfo.maxPage }&searchCondition=${ searchCondition}&searchValue=${ searchValue}";
 			}
 		}
 		
@@ -220,7 +222,7 @@
 			location.href = link + "?currentPage=" + text;
 		}
 		function seachPageButtonAction(text) {
-			location.href = searchLink + "?currentPage=" + text + "&searchCondition=${ requestScope.searchCondition}&searchValue=${ requestScope.searchValue}";
+			location.href = searchLink + "?currentPage=" + text + "&searchCondition=${ searchCondition}&searchValue=${ searchValue}";
 		}
 	</script>
 	

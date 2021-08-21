@@ -200,40 +200,29 @@
 	</select>
 	
 	
-	<!-- <select id="searchCategoryBoardCount" resultType="_int">
+	<select id="searchBoardCount" parameterType="hashmap" resultType="_int">
 		SELECT
 		       COUNT(*)
 		  FROM TBL_BOARD B
 		  JOIN TBL_CATEGORY C ON (B.CATEGORY_CODE = C.CATEGORY_CODE)
 		 WHERE B.BOARD_STATUS = 'Y'
-		   AND C.CATEGORY_NAME LIKE '%' || ? || '%'
+		 <choose>
+		  	<when test="Condition == 'category'">
+		   AND C.CATEGORY_NAME LIKE '%' || #{Value} || '%'
+		    </when>
+		    <when test="Condition == 'writer'">
+		   AND M.NICKNAME LIKE '%' || #{Value} || '%'
+		    </when>
+		  	<when test="Condition == 'title'">
+		   AND BOARD_TITLE LIKE '%' || #{Value} || '%'
+		    </when>
+		  	<when test="Condition == 'content'">
+		   AND BOARD_BODY LIKE '%' || #{Value} || '%'
+		    </when>
+		   </choose>
 	</select>
-	<select id="writerBoardCount">
-		SELECT
-		       COUNT(*)
-		  FROM TBL_BOARD B
-		  JOIN TBL_MEMBER M ON (B.BOARD_WRITER_MEMBER_NO = M.MEMBER_NO)
-		 WHERE B.BOARD_STATUS = 'Y'
-		   AND M.NICKNAME LIKE '%' || ? || '%'
-	</select>
-	<select id="titleBoardCount">
-		SELECT
-		       COUNT(*)
-		  FROM TBL_BOARD 
-		 WHERE BOARD_STATUS = 'Y'
-		   AND BOARD_TITLE LIKE '%' || ? || '%'
-	</select>
-	<select id="contentBoardCount">
-		SELECT
-		       COUNT(*)
-		  FROM TBL_BOARD 
-		 WHERE BOARD_STATUS = 'Y'
-		   AND BOARD_BODY LIKE '%' || ? || '%'
-	</select> -->
 	
-	
-	
-	<!-- <select id="seacrchCategoryBoard">
+	<select id="searchBoardList" resultMap="boardDTO">
  		SELECT 
                A.RNUM
              , A.BOARD_NO
@@ -277,11 +266,27 @@
                          ORDER BY C.BOARD_NO DESC
                         ) B
                  WHERE B.BOARD_STATUS = 'Y'
-                   AND B.CATEGORY_NAME LIKE '%' || ? || '%'
+                 <!-- <bind name="pattern" value="'%' + parameter.get('searchDTO.Value') + '%'"/> -->
+                 	<if test="searchDTO.Condition == 'category'">
+                    <!-- AND B.CATEGORY_NAME LIKE #{pattern} -->
+                    AND B.CATEGORY_NAME LIKE '%' || #{searchDTO.Value} || '%'
+                    </if>
+                 	<if test="searchDTO.Condition == 'writer'">
+                 	AND B.NICKNAME LIKE '%' || #{searchDTO.Value} || '%'
+                 	<!-- AND B.NICKNAME LIKE #{pattern} -->
+                 	</if>
+                 	<if test="searchDTO.Condition == 'title'">
+                 	<!-- AND B.BOARD_TITLE LIKE #{pattern} -->
+                 	AND B.BOARD_TITLE LIKE '%' || #{searchDTO.Value} || '%'
+                 	</if>
+                 	<if test="searchDTO.Condition == 'content'">
+                 	<!-- AND B.BOARD_BODY LIKE #{pattern} -->
+                 	AND B.BOARD_BODY LIKE '%' || #{searchDTO.Value} || '%'
+                 	</if>
                ) A
-		 WHERE A.RNUM BETWEEN ? AND ?
+		 WHERE A.RNUM BETWEEN #{pageInfo.startRow} AND #{pageInfo.endRow}
 	</select>
-	<select id="writerBoard">
+	<!-- <select id="writerBoard">
  		SELECT 
                A.RNUM
              , A.BOARD_NO
