@@ -37,13 +37,13 @@
 		
 		
 		<div class="search-area" align="center">
-			<select id="searchCondition" name="searchCondition">
+		<!-- 	<select id="searchCondition" name="searchCondition">
 				<option value="writer">작성자</option>
 				<option value="title">제목</option>
 				<option value="content">내용</option>
 			</select>
 			<input type="search">
-			<button type="submit">검색하기</button>
+			<button type="submit">검색하기</button> -->
 			
 			<!-- 관리자인 경우에만 작성하기 버튼이 보여짐 -->
 			<%-- <c:if test="${ sessionScope.loginMember.role eq 'ADMIN' }"> --%>

@@ -12,7 +12,7 @@
 	<div class="outer outer-board-list">
 		<br>
 		<h2 align="center">게시판</h2>
-		<div class="table-area">
+		<div class="table-area" style="height: auto;">
 			<table align="center" id="listArea">
 			<tr>
 				<th width="100px">글번호</th>
@@ -34,7 +34,8 @@
 			</c:forEach>
 		</table>
 		</div>
-		
+		<br>
+		<br>
 		<%-- 페이지 처리 --%>
 		<div class="pagingArea" align="center">
 						<!-- 검색을 하지 않았을 때의 페이지 분기처리 -->
@@ -99,7 +100,7 @@
 			    </c:otherwise>
 			</c:choose>   
 		</div>
-
+		<br>
 		<!-- 검색 폼 -->
 		<form id="loginForm" action="${ pageContext.servletContext.contextPath }/board/search" method="get">		
 			<div class="search-area" align="center">
